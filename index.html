@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEC - Tester Webhooka n8n</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #111;
+            color: #fff;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-w: 600px;
+            width: 100%;
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #333;
+        }
+        h2 { margin-top: 0; font-weight: 500; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-size: 14px; color: #aaa; }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover { background: #eee; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        
+        #result-container {
+            margin-top: 30px;
+            display: none;
+        }
+        pre {
+            background: #000;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            overflow-x: auto;
+            color: #0f0;
+            font-size: 13px;
+        }
+        .status { margin-top: 15px; font-size: 14px; color: #aaa; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Test Webhooka - ZEC Leads</h2>
+        
+        <div class="form-group">
+            <label>Branża / Kategoria</label>
+            <input type="text" id="industry" placeholder="np. Architekt" value="Architekt">
+        </div>
+        
+        <div class="form-group">
+            <label>Miasto</label>
+            <input type="text" id="city" placeholder="np. Warszawa" value="Warszawa">
+        </div>
+
+        <button id="submitBtn" onclick="testWebhook()">Szukaj leadów</button>
+
+        <div id="statusText" class="status"></div>
+
+        <div id="result-container">
+            <label>Surowa odpowiedź z n8n (JSON):</label>
+            <pre id="jsonOutput"></pre>
+        </div>
+    </div>
+
+    <script>
+        // TUTAJ WKLEJ WASZ NOWY LINK Z N8N
+        const WEBHOOK_URL = "TUTAJ_WKLEJ_LINK_DO_WEBHOOKA_N8N";
+
+        async function testWebhook() {
+            const industry = document.getElementById('industry').value;
+            const city = document.getElementById('city').value;
+            const btn = document.getElementById('submitBtn');
+            const statusText = document.getElementById('statusText');
+            const resultContainer = document.getElementById('result-container');
+            const jsonOutput = document.getElementById('jsonOutput');
+
+            if (!industry || !city) {
+                alert("Wypełnij oba pola!");
+                return;
+            }
+
+            // UI Loading state
+            btn.disabled = true;
+            btn.innerText = "Wysyłam zapytanie... (To może potrwać)";
+            statusText.innerText = "Czekam na odpowiedź z n8n...";
+            statusText.style.color = "#aaa";
+            resultContainer.style.display = "none";
+            jsonOutput.innerText = "";
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ industry, city })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Błąd HTTP: ${response.status} - ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                // Pokaż wynik
+                statusText.innerText = "Sukces! Dane odebrane.";
+                statusText.style.color = "#4ade80";
+                resultContainer.style.display = "block";
+                
+                // Wrzuca surowy JSON na ekran, żeby Maciek widział strukturę
+                jsonOutput.innerText = JSON.stringify(data, null, 2);
+
+            } catch (error) {
+                console.error("Błąd fetch:", error);
+                statusText.innerText = "Błąd: " + error.message + " (Sprawdź konsolę F12, to może być problem CORS)";
+                statusText.style.color = "#f87171";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Szukaj leadów";
+            }
+        }
+    </script>
+</body>
+</html>
