@@ -73,6 +73,11 @@
             <label>Branża / Kategoria</label>
             <input type="text" id="industry" placeholder="np. Architekt" value="Architekt">
         </div>
+
+        <div class="form-group">
+            <label>Kraj</label>
+            <input type="text" id="country" placeholder="np. Polska" value="Polska">
+        </div>
         
         <div class="form-group">
             <label>Miasto</label>
@@ -95,14 +100,16 @@
 
         async function testWebhook() {
             const industry = document.getElementById('industry').value;
+            const country = document.getElementById('country').value;
             const city = document.getElementById('city').value;
+            
             const btn = document.getElementById('submitBtn');
             const statusText = document.getElementById('statusText');
             const resultContainer = document.getElementById('result-container');
             const jsonOutput = document.getElementById('jsonOutput');
 
-            if (!industry || !city) {
-                alert("Wypełnij oba pola!");
+            if (!industry || !country || !city) {
+                alert("Wypełnij wszystkie trzy pola!");
                 return;
             }
 
@@ -120,7 +127,8 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ industry, city })
+                    // Dodany parametr country do paczki wysyłanej do n8n
+                    body: JSON.stringify({ industry, country, city })
                 });
 
                 if (!response.ok) {
